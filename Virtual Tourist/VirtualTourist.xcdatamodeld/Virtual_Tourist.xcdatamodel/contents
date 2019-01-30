@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="14135" systemVersion="17G65" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="MapData" representedClassName="MapData" syncable="YES" codeGenerationType="class">
+        <attribute name="lati" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="long" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="title" optional="YES" attributeType="String" syncable="YES"/>
+    </entity>
+    <entity name="Photos" representedClassName="Photos" syncable="YES" codeGenerationType="class">
+        <attribute name="photo" optional="YES" attributeType="Binary" syncable="YES"/>
+    </entity>
+    <elements>
+        <element name="MapData" positionX="-396" positionY="45" width="128" height="88"/>
+        <element name="Photos" positionX="-54" positionY="18" width="128" height="58"/>
+    </elements>
+</model>
