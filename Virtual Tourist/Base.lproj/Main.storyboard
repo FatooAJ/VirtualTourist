@@ -47,7 +47,7 @@
                     <navigationItem key="navigationItem" title="Virtual Tourist" id="umP-pI-kcI">
                         <barButtonItem key="rightBarButtonItem" id="Cng-YW-oXA">
                             <connections>
-                                <action selector="Edit:" destination="BYZ-38-t0r" id="vJL-ZY-Tq3"/>
+                                <action selector="edit:" destination="BYZ-38-t0r" id="vJL-ZY-Tq3"/>
                             </connections>
                         </barButtonItem>
                     </navigationItem>

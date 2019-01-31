@@ -11,7 +11,7 @@ import MapKit
 import CoreData
 class PhotoAlbumViewController: UIViewController,MKMapViewDelegate,UICollectionViewDelegate,UICollectionViewDataSource,NSFetchedResultsControllerDelegate {
     
-
+    
     var dataController:DataController!
     @IBOutlet weak var Map: MKMapView!
     @IBOutlet weak var collectionViewPhotos: UICollectionView!
@@ -40,7 +40,7 @@ class PhotoAlbumViewController: UIViewController,MKMapViewDelegate,UICollectionV
     }
     
     //_________________Reload New Data______________________//
-
+    
     @IBAction func reloadNewData(_ sender: Any) {
         let photosStore = mapData.photos
         for photo in photosStore! {
@@ -52,7 +52,7 @@ class PhotoAlbumViewController: UIViewController,MKMapViewDelegate,UICollectionV
         
     }
     //_________________Load Pin In The Map ______________________//
-
+    
     func loadLocationOfPin(){
         let lat = CLLocationDegrees(self.lat!)
         let long = CLLocationDegrees(self.lon!)
@@ -64,9 +64,9 @@ class PhotoAlbumViewController: UIViewController,MKMapViewDelegate,UICollectionV
         Map.setCenter(coordinate, animated: true)
     }
     
-
+    
     //_________________Download Photo From Fliker_______________________//
-
+    
     func getImageFromFliker(Page:Int){
         let randomPage = arc4random_uniform(UInt32(Page))
         let methodParameters = [
@@ -81,13 +81,13 @@ class PhotoAlbumViewController: UIViewController,MKMapViewDelegate,UICollectionV
             "per_page": "15",
             "accuracy": "6",
             "page": "\(randomPage)"
-            ]
+        ]
         
         // reguest for photo
         let urlString = API.APIBaseURL + escapedParameters(methodParameters as [String : AnyObject])
         let request = URLRequest(url: URL(string: urlString)!)
         let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
-
+            
             // If there is an error
             func displayError(_ error: String) {
                 print(error)
@@ -111,19 +111,13 @@ class PhotoAlbumViewController: UIViewController,MKMapViewDelegate,UICollectionV
                 parsedResult = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as! [String:AnyObject]
                 
                 guard let photos = parsedResult["photos"] as? [String:AnyObject] else{
-                        let alert = UIAlertController(title: "Sorry", message: "No images available.", preferredStyle: UIAlertControllerStyle.alert)
-                        
-                    alert.addAction(UIAlertAction(title: "OK", style: .default , handler: nil))
-                    self.present(alert, animated: true, completion: nil)
+                    self.showAlert(withTitle: "Sorry", withMessage: "No images available.")
                     return
                 }
-
+                
                 guard let photoArray = photos["photo"] as? [[String:AnyObject]] else{return}
                 if photoArray.count == 0 {
-                    let alert = UIAlertController(title: "Sorry", message: "No images available.", preferredStyle: UIAlertControllerStyle.alert)
-                    
-                    alert.addAction(UIAlertAction(title: "OK", style: .default , handler: nil))
-                    self.present(alert, animated: true, completion: nil)
+                    self.showAlert(withTitle: "Sorry", withMessage: "No images available.")
                     return
                 }
                 self.pages = photos["pages"] as! Int
@@ -131,19 +125,19 @@ class PhotoAlbumViewController: UIViewController,MKMapViewDelegate,UICollectionV
                     self.collectionViewPhotos.reloadData()
                 }
                 for photo in photoArray{
-                guard let imageUrlString = photo["url_m"] as? String else {return}
+                    guard let imageUrlString = photo["url_m"] as? String else {return}
                     let imageURL = URL(string: imageUrlString)
                     if let imageData = try? Data(contentsOf: imageURL!) {
-                    if let image = UIImage(data: imageData){
-                    if let data = UIImagePNGRepresentation(image) {
-                        let mapdata = Photos(context: self.dataController.viewContext)
-                        mapdata.photo = data
-                        self.mapData.addToPhotos(mapdata)
-                            try! self.dataController.viewContext.save()
-                        DispatchQueue.main.async {
-                            self.collectionViewPhotos.reloadData()
-                        }
-                        }
+                        if let image = UIImage(data: imageData){
+                            if let data = UIImagePNGRepresentation(image) {
+                                let mapdata = Photos(context: self.dataController.viewContext)
+                                mapdata.photo = data
+                                self.mapData.addToPhotos(mapdata)
+                                try! self.dataController.viewContext.save()
+                                DispatchQueue.main.async {
+                                    self.collectionViewPhotos.reloadData()
+                                }
+                            }
                         }
                     }
                 }
@@ -159,33 +153,26 @@ class PhotoAlbumViewController: UIViewController,MKMapViewDelegate,UICollectionV
             }
         }
         task.resume()
-
- 
     }
-        private func escapedParameters(_ parameters: [String:AnyObject]) -> String {
+    
+    private func escapedParameters(_ parameters: [String:AnyObject]) -> String {
+        if parameters.isEmpty {
+            return ""
+        } else {
+            var keyValuePairs = [String]()
             
-            if parameters.isEmpty {
-                return ""
-            } else {
-                var keyValuePairs = [String]()
-                
-                for (key, value) in parameters {
-                    let stringValue = "\(value)"
-                    let escapedValue = stringValue.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
-                    keyValuePairs.append(key + "=" + "\(escapedValue!)")
-                }
-                return "?\(keyValuePairs.joined(separator: "&"))"
+            for (key, value) in parameters {
+                let stringValue = "\(value)"
+                let escapedValue = stringValue.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
+                keyValuePairs.append(key + "=" + "\(escapedValue!)")
             }
+            return "?\(keyValuePairs.joined(separator: "&"))"
         }
-
-    
-    
-    
+    }
     
     //_________________Fetch Photo_______________________//
-
+    
     func fetchData(){
-
         let fetchRequest:NSFetchRequest<Photos> = Photos.fetchRequest()
         let predicate = NSPredicate(format: "mapData == %@", mapData)
         fetchRequest.sortDescriptors = []
@@ -198,13 +185,9 @@ class PhotoAlbumViewController: UIViewController,MKMapViewDelegate,UICollectionV
         } catch {
             print("Error performing initial fetch: \(error)")
         }
-        
     }
     
 
-    
-    
-    
     //_________________Collection View _______________________//
     func numberOfSections(in collectionView: UICollectionView) -> Int {
         if let count = self.fetchedResultsController.sections?.count {
@@ -223,11 +206,8 @@ class PhotoAlbumViewController: UIViewController,MKMapViewDelegate,UICollectionV
         let photo = fetchedResultsController.object(at: indexPath)
         let cell = collectionViewPhotos.dequeueReusableCell(withReuseIdentifier: "PhotoCollectionViewCell", for: indexPath) as! PhotoCollectionViewCell
         cell.image.image = UIImage(data: photo.photo!)
-
-        
         return cell
     }
-    
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let deletedPhoto = fetchedResultsController.object(at: indexPath)
@@ -235,9 +215,8 @@ class PhotoAlbumViewController: UIViewController,MKMapViewDelegate,UICollectionV
         try! self.dataController.viewContext.save()
     }
     
-    
     //_________________controller the flow of clloction view _______________________//
-
+    
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         insertedIndexPaths = []
         deletedIndexPaths = []
@@ -255,10 +234,11 @@ class PhotoAlbumViewController: UIViewController,MKMapViewDelegate,UICollectionV
         case .update:
             updatedIndexPaths.append(newIndexPath!)
             break
-            default:
+        default:
             break
+        }
     }
-    }
+    
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange sectionInfo: NSFetchedResultsSectionInfo, atSectionIndex sectionIndex: Int, for type: NSFetchedResultsChangeType) {
         let indexSet = IndexSet(integer: sectionIndex)
         switch type {
@@ -266,10 +246,11 @@ class PhotoAlbumViewController: UIViewController,MKMapViewDelegate,UICollectionV
         case .delete: collectionViewPhotos.deleteSections(indexSet)
         case .update, .move:
             fatalError("Invalid change type in controller(_:didChange:atSectionIndex:for:). Only .insert or .delete should be possible.")
-        
-        }}
+        }
+    }
+    
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-
+        
         collectionViewPhotos.performBatchUpdates({() -> Void in
             
             for indexPath in self.insertedIndexPaths {
@@ -286,8 +267,19 @@ class PhotoAlbumViewController: UIViewController,MKMapViewDelegate,UICollectionV
             
         }, completion: nil)
     }
-    }
+}
+
+extension UIViewController{
     
+    func showAlert(withTitle title: String, withMessage message:String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default , handler: nil))
+        DispatchQueue.main.async(execute: {
+            self.present(alert, animated: true)
+        })
+    }
+}
+
 
 
 

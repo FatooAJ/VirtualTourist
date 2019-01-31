@@ -7,7 +7,7 @@
         <relationship name="photos" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Photos" inverseName="mapData" inverseEntity="Photos" syncable="YES"/>
     </entity>
     <entity name="Photos" representedClassName="Photos" syncable="YES" codeGenerationType="class">
-        <attribute name="photo" optional="YES" attributeType="Binary" syncable="YES"/>
+        <attribute name="photo" optional="YES" attributeType="Binary" allowsExternalBinaryDataStorage="YES" syncable="YES"/>
         <relationship name="mapData" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="MapData" inverseName="photos" inverseEntity="MapData" syncable="YES"/>
     </entity>
     <elements>

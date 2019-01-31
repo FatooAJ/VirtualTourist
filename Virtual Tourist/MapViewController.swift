@@ -37,7 +37,7 @@ class MapViewController: UIViewController ,MKMapViewDelegate{
     }
     //_________________Edit and Done Button______________________//
     
-    @IBAction func Edit(_ sender: UIBarButtonItem) {
+    @IBAction func edit(_ sender: UIBarButtonItem) {
         if !flag{
             flag = true
             editButton.title = "Done"
@@ -105,7 +105,7 @@ class MapViewController: UIViewController ,MKMapViewDelegate{
         fetchRequest.predicate = predicate
         let data = try? dataController.viewContext.fetch(fetchRequest)
         
-        if (flag){
+        if flag {
                 for pin in data!{
                     dataController.viewContext.delete(pin)
                     map.removeAnnotation(view.annotation!)
