@@ -9,7 +9,7 @@
 import UIKit
 import MapKit
 import CoreData
-
+import SVProgressHUD
 class MapViewController: UIViewController ,MKMapViewDelegate{
     
     var flag: Bool = false

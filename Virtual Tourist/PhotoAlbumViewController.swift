@@ -9,6 +9,7 @@
 import UIKit
 import MapKit
 import CoreData
+import SVProgressHUD
 class PhotoAlbumViewController: UIViewController,MKMapViewDelegate,UICollectionViewDelegate,UICollectionViewDataSource,NSFetchedResultsControllerDelegate {
     
     
@@ -36,7 +37,7 @@ class PhotoAlbumViewController: UIViewController,MKMapViewDelegate,UICollectionV
         if(photosCount! == 0){
             getImageFromFliker(Page: pages)
         }
-        fetchData()
+       fetchData()
     }
     
     //_________________Reload New Data______________________//
@@ -49,6 +50,7 @@ class PhotoAlbumViewController: UIViewController,MKMapViewDelegate,UICollectionV
         try! self.dataController.viewContext.save()
         self.collectionViewPhotos.reloadData()
         getImageFromFliker(Page: pages)
+
         
     }
     //_________________Load Pin In The Map ______________________//
@@ -86,11 +88,12 @@ class PhotoAlbumViewController: UIViewController,MKMapViewDelegate,UICollectionV
         // reguest for photo
         let urlString = API.APIBaseURL + escapedParameters(methodParameters as [String : AnyObject])
         let request = URLRequest(url: URL(string: urlString)!)
+        SVProgressHUD.show()
         let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
             
             // If there is an error
             func displayError(_ error: String) {
-                print(error)
+                self.showAlert(withTitle: "error ", withMessage: error)
             }
             guard (error == nil) else {
                 displayError("There was an error with your request: \(error!)")
@@ -104,7 +107,7 @@ class PhotoAlbumViewController: UIViewController,MKMapViewDelegate,UICollectionV
                 displayError("No data was returned by the request!")
                 return
             }
-            
+            SVProgressHUD.dismiss()
             // let's paresd the result
             let parsedResult: [String:AnyObject]!
             do {
@@ -173,18 +176,26 @@ class PhotoAlbumViewController: UIViewController,MKMapViewDelegate,UICollectionV
     //_________________Fetch Photo_______________________//
     
     func fetchData(){
+        
         let fetchRequest:NSFetchRequest<Photos> = Photos.fetchRequest()
+        SVProgressHUD.show()
+
         let predicate = NSPredicate(format: "mapData == %@", mapData)
         fetchRequest.sortDescriptors = []
         fetchRequest.predicate = predicate
         fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: dataController.viewContext, sectionNameKeyPath: nil, cacheName: nil)
         fetchedResultsController.delegate = self
+
         do {
+            
             try fetchedResultsController.performFetch()
-            self.collectionViewPhotos.reloadData()
+
         } catch {
             print("Error performing initial fetch: \(error)")
         }
+        self.collectionViewPhotos.reloadData()
+        SVProgressHUD.dismiss()
+
     }
     
 

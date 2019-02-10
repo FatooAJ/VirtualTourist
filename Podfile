@@ -5,5 +5,6 @@ target 'Virtual Tourist' do
   use_frameworks!
 
   # Pods for Virtual Tourist
+  pod 'SVProgressHUD'
 
 end
