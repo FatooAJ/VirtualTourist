@@ -24,6 +24,7 @@ class PhotoAlbumViewController: UIViewController,MKMapViewDelegate,UICollectionV
     var lon : Double!
     var mapData: MapData!
     var pages : Int = 1
+    var api = API()
     override func viewDidLoad() {
         super.viewDidLoad()
         Map.delegate = self
@@ -34,7 +35,7 @@ class PhotoAlbumViewController: UIViewController,MKMapViewDelegate,UICollectionV
         guard let mapData = mapData else {return}
         loadLocationOfPin()
         let photosCount = mapData.photos?.count
-        if(photosCount! == 0){
+        if photosCount! == 0 {
             getImageFromFliker(Page: pages)
         }
        fetchData()
@@ -70,7 +71,8 @@ class PhotoAlbumViewController: UIViewController,MKMapViewDelegate,UICollectionV
     //_________________Download Photo From Fliker_______________________//
     
     func getImageFromFliker(Page:Int){
-        let randomPage = arc4random_uniform(UInt32(Page))
+        let randomPage = arc4random_uniform(UInt32(Page))+1
+        print(randomPage+1)
         let methodParameters = [
             "method": "flickr.photos.search",
             "api_key": "0f01c52be769b236ae7646e47ccf8b36",
@@ -84,35 +86,7 @@ class PhotoAlbumViewController: UIViewController,MKMapViewDelegate,UICollectionV
             "accuracy": "6",
             "page": "\(randomPage)"
         ]
-        
-        // reguest for photo
-        let urlString = API.APIBaseURL + escapedParameters(methodParameters as [String : AnyObject])
-        let request = URLRequest(url: URL(string: urlString)!)
-        SVProgressHUD.show()
-        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
-            
-            // If there is an error
-            func displayError(_ error: String) {
-                self.showAlert(withTitle: "error ", withMessage: error)
-            }
-            guard (error == nil) else {
-                displayError("There was an error with your request: \(error!)")
-                return
-            }
-            guard let statusCode = (response as? HTTPURLResponse)?.statusCode, statusCode >= 200 && statusCode <= 299 else {
-                displayError("Your request returned a status code other than 2xx!")
-                return
-            }
-            guard let data = data else {
-                displayError("No data was returned by the request!")
-                return
-            }
-            SVProgressHUD.dismiss()
-            // let's paresd the result
-            let parsedResult: [String:AnyObject]!
-            do {
-                parsedResult = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as! [String:AnyObject]
-                
+        api.getPhoto(methodParameters: methodParameters as [String : AnyObject]) { (parsedResult) in
                 guard let photos = parsedResult["photos"] as? [String:AnyObject] else{
                     self.showAlert(withTitle: "Sorry", withMessage: "No images available.")
                     return
@@ -143,35 +117,11 @@ class PhotoAlbumViewController: UIViewController,MKMapViewDelegate,UICollectionV
                             }
                         }
                     }
-                }
-                
-            } catch {
-                displayError("Could not parse the data as JSON: '\(data)'")
-                return
-            }
-            
-            if parsedResult["stat"] as? String == "ok" {return}
-            else {
-                displayError("Flickr API returned an error.")
             }
         }
-        task.resume()
     }
     
-    private func escapedParameters(_ parameters: [String:AnyObject]) -> String {
-        if parameters.isEmpty {
-            return ""
-        } else {
-            var keyValuePairs = [String]()
-            
-            for (key, value) in parameters {
-                let stringValue = "\(value)"
-                let escapedValue = stringValue.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
-                keyValuePairs.append(key + "=" + "\(escapedValue!)")
-            }
-            return "?\(keyValuePairs.joined(separator: "&"))"
-        }
-    }
+
     
     //_________________Fetch Photo_______________________//
     
